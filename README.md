@@ -199,6 +199,7 @@ Compare the same graphs in another order.
 | **Without Copy Elision** | <img src="Resources/Dots/Graph4_NM_NCE.svg" width="700"> | <img src="Resources/Dots/Graph4_M_NCE.svg" width="700"> |
 | **With Copy Elision**    | <img src="Resources/Dots/Graph4_NM_CE.svg" width="700">  | <img src="Resources/Dots/Graph4_M_CE.svg" width="700">  |
 
-##Conclusion
+## Conclusion
+
 Use **NRVO** to avoid unnecessary copying, but do it carefully and close to the standard.<br>
 Use **move semantics** to turn copying into moves.
