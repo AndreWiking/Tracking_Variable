@@ -1,0 +1,3 @@
+/Users/andrewiking/CLionProjects/Tracking_Numbers/cmake-build-debug/CMakeFiles/rebuild_cache.dir
+/Users/andrewiking/CLionProjects/Tracking_Numbers/cmake-build-debug/CMakeFiles/edit_cache.dir
+/Users/andrewiking/CLionProjects/Tracking_Numbers/cmake-build-debug/CMakeFiles/Tracking_Numbers.dir

@@ -1,0 +1,28 @@
+digraph G {
+    graph [rankdir = "HR"];
+    node [shape=record];
+Node_1[label="Constructor | { <f1> a |  #0 | 0x16DC071B0  | value = 0} " fillcolor = "darkcyan" style = "filled"]
+Node_2[label="Constructor | { <f1> c |  #1 | 0x16DC07160  | value = 2} " fillcolor = "darkcyan" style = "filled"]
+Node_1 -> Node_2[ color = blue style = solid weight = 100 ];
+Node_3[label="Copy Constructor | { <f1> tmp_1 |  #2 | 0x16DC070F8  | value = 0}  | { <f2> a |  #0 | 0x16DC071B0  | value = 0} " fillcolor = "#FF6E50" style = "filled"]
+Node_2 -> Node_3[ color = blue style = solid weight = 100 ];
+Node_4[label="Copy Constructor | { <f1> tmp_2 |  #3 | 0x16DC07120  | value = 0}  | { <f2> tmp_1 |  #2 | 0x16DC070F8  | value = 0} " fillcolor = "#FF6E50" style = "filled"]
+Node_3 -> Node_4[ color = blue style = solid weight = 100 ];
+Node_5[label="[COPY] = | { <f1> c |  #1 | 0x16DC07160  | value = 2}  | { <f2> tmp_2 |  #3 | 0x16DC07120  | value = 0} " fillcolor = "#FF6E50" style = "rounded, filled"]
+Node_4 -> Node_5[ color = blue style = solid weight = 100 ];
+Node_5:f1 -> Node_2:f1[ color = grey style = dashed weight = 1 ];
+Node_5:f2 -> Node_4:f1[ color = gray style = dashed weight = 1 ];
+Node_6[label="Destructor | { <f1> tmp_2 |  #3 | 0x16DC07120  | value = 0} " fillcolor = "#FFDED7" style = "rounded, filled"]
+Node_5 -> Node_6[ color = blue style = solid weight = 100 ];
+Node_6:f1 -> Node_4:f1[ color = grey style = dashed weight = 1 ];
+Node_7[label="Destructor | { <f1> tmp_1 |  #2 | 0x16DC070F8  | value = 0} " fillcolor = "#FFDED7" style = "rounded, filled"]
+Node_6 -> Node_7[ color = blue style = solid weight = 100 ];
+Node_7:f1 -> Node_3:f1[ color = grey style = dashed weight = 1 ];
+Node_8[label="Destructor | { <f1> c |  #1 | 0x16DC07160  | value = 0} " fillcolor = "#FFDED7" style = "rounded, filled"]
+Node_7 -> Node_8[ color = blue style = solid weight = 100 ];
+Node_8:f1 -> Node_2:f1[ color = grey style = dashed weight = 1 ];
+Node_9[label="Destructor | { <f1> a |  #0 | 0x16DC071B0  | value = 0} " fillcolor = "#FFDED7" style = "rounded, filled"]
+Node_8 -> Node_9[ color = blue style = solid weight = 100 ];
+Node_9:f1 -> Node_1:f1[ color = grey style = dashed weight = 1 ];
+
+}

@@ -1,0 +1,365 @@
+<h1 id="copy-elision-and-move-semantics">Copy Elision and Move Semantics</h1>
+<h2 id="copy-elision-nrvo">Copy Elision NRVO</h2>
+<pre><code class="lang-c++"><span class="hljs-function">TrackingInt <span class="hljs-title">NRVO</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-function">FUNCTION_TMP
+    <span class="hljs-title">VAR</span><span class="hljs-params">(<span class="hljs-keyword">int</span>, nrvo, <span class="hljs-number">10</span>)</span></span>;
+    <span class="hljs-keyword">return</span> nrvo;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Test1</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-function">FUNCTION_TMP
+    <span class="hljs-title">VAR</span><span class="hljs-params">(<span class="hljs-keyword">int</span>, a, <span class="hljs-number">0</span>)</span></span>;
+    a = NRVO();
+}
+</code></pre>
+<table>
+    <thead>
+    <tr>
+        <th></th>
+        <th>Without Move</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td>Without CE</td>
+        <td>Copies = 2<br/> Temp objs = 1</td>
+    </tr>
+    <tr>
+        <td>With CE</td>
+        <td>Copies = 1<br/> Temp objs = 0</td>
+    </tr>
+    </tbody>
+</table>
+<details>
+    <summary>Log without Copy Elision</summary>
+    <pre>
+int main() {
+    <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16FCAF1C8">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+    TrackingInt NRVO() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>nrvo</font><font color = Black><a href="0x16FCAF128">#1</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16FCAF178">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>nrvo</font><font color = Black><a href="0x16FCAF128">#1</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>nrvo</font><font color = Black><a href="0x16FCAF128">#1</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+    }
+    <b><font color = DarkRed>[COPY] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16FCAF1C8">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16FCAF178">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+    <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16FCAF178">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+    <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16FCAF1C8">#0</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+}
+
+<font color = DimGray>Copy count = 2<br></font><font color = DimGray>Move count = 0<br></font><font color = DimGray>Temporary objects count = 1</font>
+</pre>
+</details>
+
+<details>
+    <summary>Dot log without Copy Elision</summary>
+    <img src="Resources/Dots/Graph_1.svg" width="500">
+</details>
+
+<details>
+    <summary>Log with Copy Elision</summary>
+    <pre>
+int main() {
+    <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16EE331C8">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+    TrackingInt NRVO() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>nrvo</font><font color = Black><a href="0x16EE33178">#1</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+    }
+    <b><font color = DarkRed>[COPY] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16EE331C8">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>nrvo</font><font color = Black><a href="0x16EE33178">#1</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+    <font color = FireBrick>Destructor </font><font color = CadetBlue>nrvo</font><font color = Black><a href="0x16EE33178">#1</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+    <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16EE331C8">#0</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+}
+
+<font color = DimGray>Copy count = 1<br></font><font color = DimGray>Move count = 0<br></font><font color = DimGray>Temporary objects count = 0</font>
+</pre>
+</details>
+
+<details>
+    <summary>Dot log with Copy Elision</summary>
+    <img src="Resources/Dots/Graph_1CE.svg" width="500">
+</details>
+
+<h2 id="copy-elision-nrvo-not-working">Copy Elision NRVO not working</h2>
+<pre><code class="lang-c++"><span class="hljs-function">TrackingInt <span class="hljs-title">NoNRVO</span><span class="hljs-params">(TrackingInt val)</span></span>{
+    FUNCTION_TMP
+    <span class="hljs-keyword">return</span> val;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Test2</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-function">FUNCTION_TMP
+    <span class="hljs-title">VAR</span><span class="hljs-params">(<span class="hljs-keyword">int</span>, a, <span class="hljs-number">0</span>)</span></span>;
+    VAR(<span class="hljs-keyword">int</span>, c, <span class="hljs-number">2</span>);
+    c = NoNRVO(a);
+}
+</code></pre>
+<details>
+    <summary>Log with Copy Elision</summary>
+    <pre>
+int main() {<br>
+    void Test2() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16D7971B0">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16D797160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+        <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16D7970F8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><font color = Blue> form </font><font color = CadetBlue>a</font><font color = Black><a href="0x16D7971B0">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+        TrackingInt NoNRVO(TrackingInt) {
+            <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16D797120">#3</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16D7970F8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        }
+        <b><font color = DarkRed>[COPY] </font></b><font color = CadetBlue>c</font><font color = Black><a href="0x16D797160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16D797120">#3</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16D797120">#3</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16D7970F8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16D797160">#1</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16D7971B0">#0</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+    }
+}
+
+<font color = DimGray>Copy count = 3<br></font><font color = DimGray>Move count = 0<br></font><font color = DimGray>Temporary objects count = 2</font>
+</pre>
+</details>
+<details>
+    <summary>Dot log with Copy Elision</summary>
+    <img src="Resources/Dots/Graph_2CE.svg" width="500">
+</details>
+
+<h2 id="move-semantics">Move Semantics</h2>
+<pre><code class="lang-c++"><span class="hljs-function">TrackingInt <span class="hljs-title">Sum</span><span class="hljs-params">(TrackingInt &amp;val1, TrackingInt &amp;val2, TrackingInt &amp;val3)</span></span>{
+    <span class="hljs-function">FUNCTION_TMP
+    <span class="hljs-title">VAR</span><span class="hljs-params">(<span class="hljs-keyword">int</span>, res, val1 + val2 + val3)</span></span>;
+    <span class="hljs-keyword">return</span> res;
+}
+
+<span class="hljs-function">TrackingInt <span class="hljs-title">GetVal</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-function">FUNCTION_TMP
+    <span class="hljs-title">VAR</span><span class="hljs-params">(<span class="hljs-keyword">int</span>, val, <span class="hljs-number">10</span>)</span></span>;
+    <span class="hljs-keyword">return</span> val;
+}
+
+<span class="hljs-function"><span class="hljs-keyword">void</span> <span class="hljs-title">Test3</span><span class="hljs-params">()</span></span>{
+    <span class="hljs-function">FUNCTION_TMP
+    <span class="hljs-title">VAR</span><span class="hljs-params">(<span class="hljs-keyword">int</span>, a, <span class="hljs-number">1</span>)</span></span>;
+    VAR(<span class="hljs-keyword">int</span>, b, <span class="hljs-number">2</span>);
+    VAR(<span class="hljs-keyword">int</span>, c, GetVal());
+    VAR(<span class="hljs-keyword">int</span>, d, Sum(a, b, c));
+    a = b * GetVal();
+}
+</code></pre>
+<details>
+    <summary>Log without Copy Elision and Move</summary>
+    <pre>
+int main() {<br>
+    void Test3() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16FB271B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16FB27160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16FB26FD8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16FB270F8">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>val</font><font color = Black><a href="0x16FB26FD8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16FB26FD8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        }
+        <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16FB27120">#4</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16FB270F8">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16FB270F8">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><br>
+        TrackingInt Sum(TrackingInt &amp;, TrackingInt &amp;, TrackingInt &amp;) {
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16FB271B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>b</font><font color = Black><a href="0x16FB27160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16FB26F60">#5</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16FB26F60">#5</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>c</font><font color = Black><a href="0x16FB27120">#4</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16FB26F88">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16FB26FB0">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16FB26F88">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16FB26F88">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16FB26F60">#5</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+            <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_4</font><font color = Black><a href="0x16FB27090">#8</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>res</font><font color = Black><a href="0x16FB26FB0">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16FB26FB0">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        }
+        <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16FB270B8">#9</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_4</font><font color = Black><a href="0x16FB27090">#8</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_4</font><font color = Black><a href="0x16FB27090">#8</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16FB26FD8">#10</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_5</font><font color = Black><a href="0x16FB27028">#11</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>val</font><font color = Black><a href="0x16FB26FD8">#10</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16FB26FD8">#10</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        }
+        <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>b</font><font color = Black><a href="0x16FB27160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><font color = DarkBlue> * </font><font color = CadetBlue>tmp_5</font><font color = Black><a href="0x16FB27028">#11</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>tmp_6</font><font color = Black><a href="0x16FB27050">#12</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <b><font color = DarkRed>[COPY] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16FB271B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>tmp_6</font><font color = Black><a href="0x16FB27050">#12</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_6</font><font color = Black><a href="0x16FB27050">#12</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_5</font><font color = Black><a href="0x16FB27028">#11</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16FB270B8">#9</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16FB27120">#4</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16FB27160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16FB271B0">#0</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+    }
+}
+
+<font color = DimGray>Copy count = 7<br></font><font color = DimGray>Move count = 0<br></font><font color = DimGray>Temporary objects count = 6</font>
+
+</pre>
+</details>
+
+<details>
+    <summary>Log without Copy Elision but with Move</summary>
+    <pre>
+int main() {<br>
+    void Test3() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16D8EB1B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16D8EB160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16D8EAFA8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16D8EB0F8">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>val</font><font color = Black><a href="0x16D8EAFA8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16D8EAFA8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        }
+        <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16D8EB120">#4</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16D8EB0F8">#3</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16D8EB0F8">#3</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+        TrackingInt Sum(TrackingInt &amp;, TrackingInt &amp;, TrackingInt &amp;) {
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16D8EB1B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>b</font><font color = Black><a href="0x16D8EB160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16D8EAF30">#5</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16D8EAF30">#5</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>c</font><font color = Black><a href="0x16D8EB120">#4</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16D8EAF58">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16D8EAF80">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16D8EAF58">#6</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16D8EAF58">#6</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16D8EAF30">#5</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+            <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_4</font><font color = Black><a href="0x16D8EB090">#8</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>res</font><font color = Black><a href="0x16D8EAF80">#7</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16D8EAF80">#7</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        }
+        <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16D8EB0B8">#9</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_4</font><font color = Black><a href="0x16D8EB090">#8</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_4</font><font color = Black><a href="0x16D8EB090">#8</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16D8EAFA8">#10</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>tmp_5</font><font color = Black><a href="0x16D8EB028">#11</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>val</font><font color = Black><a href="0x16D8EAFA8">#10</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16D8EAFA8">#10</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        }
+        <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>b</font><font color = Black><a href="0x16D8EB160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><font color = DarkBlue> * </font><font color = CadetBlue>tmp_5</font><font color = Black><a href="0x16D8EB028">#11</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>tmp_6</font><font color = Black><a href="0x16D8EB050">#12</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <b><font color = DarkGreen>[MOVE] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16D8EB1B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>tmp_6</font><font color = Black><a href="0x16D8EB050">#12</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_6</font><font color = Black><a href="0x16D8EB050">#12</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_5</font><font color = Black><a href="0x16D8EB028">#11</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16D8EB0B8">#9</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16D8EB120">#4</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16D8EB160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16D8EB1B0">#0</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+    }
+}
+
+<font color = DimGray>Copy count = 0<br></font><font color = DimGray>Move count = 7<br></font><font color = DimGray>Temporary objects count = 6</font>
+</pre>
+</details>
+
+<details>
+    <summary>Log with Copy Elision but without Move</summary>
+    <pre>
+int main() {<br>
+    void Test3() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16F6331B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16F633160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F6330F8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        }
+        <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16F633120">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F6330F8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F6330F8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><br>
+        TrackingInt Sum(TrackingInt &amp;, TrackingInt &amp;, TrackingInt &amp;) {
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16F6331B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>b</font><font color = Black><a href="0x16F633160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16F632F90">#4</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16F632F90">#4</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>c</font><font color = Black><a href="0x16F633120">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16F632FB8">#5</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16F633090">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16F632FB8">#5</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16F632FB8">#5</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16F632F90">#4</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+        }
+        <b><font color = DarkRed>[COPY] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16F6330B8">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>res</font><font color = Black><a href="0x16F633090">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16F633090">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F633028">#8</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        }
+        <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>b</font><font color = Black><a href="0x16F633160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><font color = DarkBlue> * </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F633028">#8</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16F633050">#9</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <b><font color = DarkRed>[COPY] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16F6331B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16F633050">#9</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16F633050">#9</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F633028">#8</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16F6330B8">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16F633120">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16F633160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16F6331B0">#0</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+    }
+}
+
+<font color = DimGray>Copy count = 4<br></font><font color = DimGray>Move count = 0<br></font><font color = DimGray>Temporary objects count = 3</font>
+
+</pre>
+</details>
+
+<details>
+    <summary>Log with Copy Elision and Move</summary>
+    <pre>
+int main() {<br>
+    void Test3() {
+        <font color = Blue>Constructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16F4031B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16F403160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F4030F8">#2</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        }
+        <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16F403120">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font><font color = Blue> form </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F4030F8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F4030F8">#2</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+        TrackingInt Sum(TrackingInt &amp;, TrackingInt &amp;, TrackingInt &amp;) {
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16F4031B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>b</font><font color = Black><a href="0x16F403160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16F402F60">#4</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+            <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16F402F60">#4</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font><font color = DarkBlue> + </font><font color = CadetBlue>c</font><font color = Black><a href="0x16F403120">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+            <font color = Blue>Constructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16F402F88">#5</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+            <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16F403090">#6</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16F402F88">#5</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_2</font><font color = Black><a href="0x16F402F88">#5</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+            <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_1</font><font color = Black><a href="0x16F402F60">#4</a></font><font color = DarkOliveGreen>&lt;value=3&gt;</font>
+        }
+        <b><font color = DarkGreen>[MOVE] </font></b><font color = Blue>Constructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16F4030B8">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font><font color = Blue> form </font><font color = CadetBlue>res</font><font color = Black><a href="0x16F403090">#6</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>res</font><font color = Black><a href="0x16F403090">#6</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font><br>
+        TrackingInt GetVal() {
+            <font color = Blue>Constructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F403028">#8</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        }
+        <b><font color = DarkGoldenrod>[BIN] </font></b><font color = CadetBlue>b</font><font color = Black><a href="0x16F403160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font><font color = DarkBlue> * </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F403028">#8</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = Blue>Constructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16F403050">#9</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <b><font color = DarkGreen>[MOVE] </font></b><font color = CadetBlue>a</font><font color = Black><a href="0x16F4031B0">#0</a></font><font color = DarkOliveGreen>&lt;value=1&gt;</font><font color = DarkBlue> = </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16F403050">#9</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>tmp_3</font><font color = Black><a href="0x16F403050">#9</a></font><font color = DarkOliveGreen>&lt;value=0&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>val</font><font color = Black><a href="0x16F403028">#8</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>d</font><font color = Black><a href="0x16F4030B8">#7</a></font><font color = DarkOliveGreen>&lt;value=13&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>c</font><font color = Black><a href="0x16F403120">#3</a></font><font color = DarkOliveGreen>&lt;value=10&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>b</font><font color = Black><a href="0x16F403160">#1</a></font><font color = DarkOliveGreen>&lt;value=2&gt;</font>
+        <font color = FireBrick>Destructor </font><font color = CadetBlue>a</font><font color = Black><a href="0x16F4031B0">#0</a></font><font color = DarkOliveGreen>&lt;value=20&gt;</font>
+    }
+}
+
+<font color = DimGray>Copy count = 0<br></font><font color = DimGray>Move count = 4<br></font><font color = DimGray>Temporary objects count = 3</font>
+
+</pre>
+</details>
+
+<table>
+    <thead>
+    <tr>
+        <th></th>
+        <th>Without Move</th>
+        <th>With Move</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><strong>Without Copy Elision</strong></td>
+        <td>Copies = 7<br/> Moves = 0<br/> Temp objs = 6</td>
+        <td>Copies = 0<br/> Moves = 7<br/> Temp objs = 6</td>
+    </tr>
+    <tr>
+        <td><strong>With Copy Elision</strong></td>
+        <td>Copies = 4<br/> Moves = 0<br/> Temp objs = 3</td>
+        <td>Copies = 0<br/> Moves = 4<br/> Temp objs = 3</td>
+    </tr>
+    </tbody>
+</table>
+<table>
+    <thead>
+    <tr>
+        <th></th>
+        <th>Without Move</th>
+        <th>With Move</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><strong>Without CE</strong></td>
+        <td><img src="Resources/Dots/Graph3_NM_NCE.svg" width="500"></td>
+        <td><img src="Resources/Dots/Graph3_M_NCE.svg" width="500"></td>
+    </tr>
+    <tr>
+        <td><strong>With CE</strong></td>
+        <td><img src="Resources/Dots/Graph3_NM_CE.svg" width="500"></td>
+        <td><img src="Resources/Dots/Graph3_M_CE.svg" width="500"></td>
+    </tr>
+    </tbody>
+</table>
