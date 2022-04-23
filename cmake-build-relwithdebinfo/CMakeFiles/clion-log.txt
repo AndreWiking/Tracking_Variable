@@ -1,3 +1,0 @@
-/Applications/CLion.app/Contents/bin/cmake/mac/bin/cmake -DCMAKE_BUILD_TYPE=RelWithDebInfo -O0 -fno-elide-constructors -DCMAKE_DEPENDS_USE_COMPILER=FALSE -G "CodeBlocks - Unix Makefiles" /Users/andrewiking/CLionProjects/Tracking_Numbers
-CMake Error: Unknown argument -fno-elide-constructors
-CMake Error: Run 'cmake --help' for all supported options.
